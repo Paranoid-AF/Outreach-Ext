@@ -1,9 +1,12 @@
 const path = require('path')
 const fs = require('fs')
 const chokidar = require('chokidar')
+const process = require('process')
 
 const serializer = require('./utils/serializer')
+const logger = require('./utils/consoleLogger')
 
+const version = require('./package.json').version
 const config = require('./config/config.json')
 
 const configPaths = {
@@ -14,11 +17,17 @@ const configPaths = {
 
 const services = [];
 
+
+console.log(`\x1b[47m\x1b[30m%s\x1b[40m\x1b[37m %s \x1b[0m`, "Outreach-Ext", version)
+logger.norm(`Server starting up...`, true)
+
 if(!fs.existsSync(configPaths.mainStore)){
+  logger.warn(`Main folder not found, creating...`, true)
   fs.mkdirSync(configPaths.mainStore)
 }
 
 if(!fs.existsSync(configPaths.serviceStore)){
+  logger.warn(`Service folder not found, creating...`, true)
   fs.mkdirSync(configPaths.serviceStore)
 }
 
@@ -27,6 +36,12 @@ fs.readdirSync(path.resolve(__dirname, './services')).forEach(file => {
     services.push(require(path.resolve(__dirname, `./services/${file}`)))
   }
 })
+
+if(services.length > 0){
+  logger.info(`Loaded ${services.length} service(s).`, true)
+}else{
+  logger.warn(`No service found! Check services/README.txt`, true)
+}
 
 chokidar.watch(configPaths.serviceStore).on('change', (filepath) => {
   const file = path.basename(filepath)
