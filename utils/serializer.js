@@ -9,14 +9,17 @@ const hexMap = {
   ref: "\x08"
 }
 const hexReversed = { }
+let regexReplace = ""
 Object.keys(hexMap).forEach((val, index) => {
   hexReversed[hexMap[val]] = val
+  regexReplace += hexMap[val]
 })
+const replaceHex = new RegExp("[" + regexReplace + "]", 'g')
 
 function serialize(obj){
   let result = ""
   Object.keys(obj).forEach((val, index) => {
-    result += obj[val] + hexMap[val]
+    result += obj[val].replace(replaceHex, '') + hexMap[val]
   })
   return result
 }
