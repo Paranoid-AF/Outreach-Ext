@@ -36,7 +36,7 @@ chokidar.watch(configPaths.serviceStore).on('change', (filepath) => {
   if(targetService !== undefined){
     fs.readFile(path.resolve(filepath), { encoding: 'utf8' }, (err, data) => {
       if(!err && data !== ''){
-          fs.writeFile(filepath, '', { encoding: 'utf8'}, () => {})
+          fs.writeFileSync(filepath, '', { encoding: 'utf8'})
           if(changeType === "rslt"){
             data.split('\n').forEach(val => {
               if(val !== ''){
