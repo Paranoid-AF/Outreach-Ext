@@ -4,5 +4,8 @@
   "main": "index.js",
   "repository": "https://github.com/Paranoid-AF/Outreach-Ext.git",
   "author": "Paranoid-AF <7659335+Paranoid-AF@users.noreply.github.com>",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "dependencies": {
+    "chokidar": "^3.4.2"
+  }
 }

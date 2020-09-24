@@ -1,4 +1,11 @@
 module.exports = {
-  bruh: "hi there",
-  brrrruh: "i have no idea"
+  name: "redis",
+  actions: {
+    query: (data) => {
+
+    },
+    connect: (data) => {
+      
+    }
+  },
 }
