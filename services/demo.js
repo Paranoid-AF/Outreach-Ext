@@ -4,8 +4,9 @@ module.exports = {
     query: (data) => {
 
     },
-    connect: (data) => {
-      
+    play_with_me: (data) => {
+      console.log(data.payload)
+      return "world.execute(me);"
     }
   },
 }
