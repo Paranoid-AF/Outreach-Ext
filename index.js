@@ -5,10 +5,10 @@ const process = require('process')
 
 const serializer = require('./utils/serializer')
 const logger = require('./utils/consoleLogger')
+const idGen = require('./utils/idGenerate')
 
 const version = require('./package.json').version
 const config = require('./config/config.json')
-const { devMode } = require('./utils/consoleLogger')
 
 const configPaths = {
   storePath: path.resolve(config.path, './scripts/plugins/store/'),
@@ -18,9 +18,10 @@ const configPaths = {
 
 const services = [];
 
-
-console.log(`\x1b[47m\x1b[30m%s\x1b[40m\x1b[37m %s \x1b[0m`, "Outreach-Ext", version)
-logger.norm(`Server starting up...`, true)
+if(module === require.main){
+  console.log(`\x1b[47m\x1b[30m%s\x1b[40m\x1b[37m %s \x1b[0m`, "Outreach-Ext", version)
+  logger.norm(`Server starting up...`, true)
+}
 
 if(!fs.existsSync(configPaths.mainStore)){
   logger.warn(`Main folder not found, creating...`, true)
@@ -39,9 +40,34 @@ fs.readdirSync(path.resolve(__dirname, './services')).forEach(file => {
 })
 
 if(services.length > 0){
-  logger.info(`Loaded ${services.length} service(s).`, true)
+  if(module === require.main){
+    logger.info(`Loaded ${services.length} service(s).`, true)
+  }
 }else{
   logger.err(`No service found! Check services/README.txt`, true)
+}
+
+if(module !== require.main){
+  const exported = {}
+  services.forEach(val => {
+    exported[val.name] = val
+    val["requestCounter"] = 0
+    val["dispatch"] = (targetService, targetAction, payload) => {
+      const task = {
+        uuid: idGen.uuid(val.name, targetService, val["requestCounter"]),
+        issuer: val.name,
+        action: targetAction,
+        time: Math.round((new Date()).getTime() / 1000).toString(),
+        payload: payload
+      }
+      delete val.name
+      val["requestCounter"]++
+      const requestSerial = serializer.serialize(task)
+      return requestSerial // TODO
+    }
+  })
+  module.exports = exported
+  return
 }
 
 console.info(`Everything is ready, listening for \x1b[4m${config.path}\x1b[0m`)
