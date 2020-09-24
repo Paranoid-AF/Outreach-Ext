@@ -8,6 +8,7 @@ const logger = require('./utils/consoleLogger')
 
 const version = require('./package.json').version
 const config = require('./config/config.json')
+const { devMode } = require('./utils/consoleLogger')
 
 const configPaths = {
   storePath: path.resolve(config.path, './scripts/plugins/store/'),
@@ -40,8 +41,10 @@ fs.readdirSync(path.resolve(__dirname, './services')).forEach(file => {
 if(services.length > 0){
   logger.info(`Loaded ${services.length} service(s).`, true)
 }else{
-  logger.warn(`No service found! Check services/README.txt`, true)
+  logger.err(`No service found! Check services/README.txt`, true)
 }
+
+console.info(`Everything is ready, listening for \x1b[4m${config.path}\x1b[0m`)
 
 chokidar.watch(configPaths.serviceStore).on('change', (filepath) => {
   const file = path.basename(filepath)
@@ -69,16 +72,11 @@ chokidar.watch(configPaths.serviceStore).on('change', (filepath) => {
                   ref: info.payload,
                 }
                 const resultSerialized = serializer.serialize(result)
+                if(logger.devMode){
+                  console.info(`[\x1b[35m+\x1b[0m] \x1b[4m%s\x1b[0m%s\x1b[40m\x1b[37m%s\x1b[0m%s\x1b[1m%s\x1b[0m%s%s`, serviceName, `: Detected a `, info.action, ` request from `, info.issuer, `: `, info.payload)
+                }
                 fs.writeFile(path.resolve(configPaths.serviceStore, `./${info.issuer}.rslt`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
               }
-            }
-          })
-        }
-        if(changeType === "rslt"){
-          data.split('\n').forEach(val => {
-            if(val !== ''){
-              const info = serializer.deserialize(val)
-              console.log(info)
             }
           })
         }

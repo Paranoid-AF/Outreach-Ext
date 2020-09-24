@@ -17,6 +17,7 @@ function writeLog(data, force = false, type = "info"){
 }
 
 module.exports = {
+  devMode: devMode,
   norm: (data, force) => { writeLog(data, force, "norm") },
   normal: (data, force) => { writeLog(data, force, "norm") },
   info: (data, force) => { writeLog(data, force, "info") },
