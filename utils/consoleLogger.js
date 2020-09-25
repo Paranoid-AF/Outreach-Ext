@@ -8,10 +8,10 @@ function writeLog(data, force = false, type = "info"){
       console.info("[\x1b[34mi\x1b[0m] %s", data)
     }
     if(type === "warn"){
-      console.warn("[\x1b[33mi\x1b[0m] %s", data)
+      console.warn("[\x1b[33m!\x1b[0m] %s", data)
     }
     if(type === "err"){
-      console.error("[\x1b[31mi\x1b[0m] %s")
+      console.error("[\x1b[31mx\x1b[0m] %s")
     }
   }
 }
