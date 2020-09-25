@@ -91,6 +91,13 @@ if(module !== require.main){
             waitingRequest--
             clearInterval(detection)
             recycleWatcher()
+            const targetPath = path.resolve(configPaths.serviceStore, `./${serviceName}.rslt`)
+            fs.readFile(targetPath, { encoding: 'utf8' }, (err, data) => {
+              if(!err && data !== ''){
+                fs.writeFileSync(filepath, '', { encoding: 'utf8'})
+                transmitResult(data)
+              }
+            })
           }
         }, detectionInterval)
       })
@@ -115,18 +122,21 @@ if(module !== require.main){
             fs.readFile(path.resolve(filepath), { encoding: 'utf8' }, (err, data) => {
               if(!err && data !== ''){
                 fs.writeFileSync(filepath, '', { encoding: 'utf8'})
-                data.split('\n').forEach(val => {
-                  if(val !== ''){
-                    const info = serializer.deserialize(val)
-                    dispatchResults[info.uuid] = info
-                  }
-                })
+                transmitResult(data)
               }
             })
           }
         }
       })
     }
+  }
+  function transmitResult(data){
+    data.split('\n').forEach(val => {
+      if(val !== ''){
+        const info = serializer.deserialize(val)
+        dispatchResults[info.uuid] = info
+      }
+    })
   }
   module.exports = exported
   return
