@@ -1,5 +1,5 @@
 module.exports = {
-  name: "redis",
+  name: "quantum",
   actions: {
     query: async (data) => {
 

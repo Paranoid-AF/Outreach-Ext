@@ -35,9 +35,14 @@ if(!fs.existsSync(configPaths.serviceStore)){
   fs.mkdirSync(configPaths.serviceStore)
 }
 
+if(module === require.main){
+  fs.unlinkSync(path.resolve(configPaths.mainStore, `./services.list`))
+}
 fs.readdirSync(path.resolve(__dirname, './services')).forEach(file => {
   if(file.endsWith('.js')){
-    services.push(require(path.resolve(__dirname, `./services/${file}`)))
+    const currentService = require(path.resolve(__dirname, `./services/${file}`))
+    services.push(currentService)
+    fs.writeFile(path.resolve(configPaths.mainStore, `./services.list`), currentService['name'] + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
   }
 })
 
