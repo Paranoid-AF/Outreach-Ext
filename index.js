@@ -177,7 +177,7 @@ watcher.on('change', (filepath) => {
                     fs.writeFile(path.resolve(configPaths.serviceStore, `./${info.issuer}.rslt`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
                   })
                   .catch(err => {
-                    logger.err(`Action ${info.action} has reported an error: ${err}`, true)
+                    logger.err(`Action ${info.action} has reported an error. ${err}`, true)
                   })
               }else{
                 logger.err(`Received action ${info.action} which should be handled by ${serviceName}, but it doesn't appear to have a proper function to handle it.`)

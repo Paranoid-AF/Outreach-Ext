@@ -11,7 +11,7 @@ function writeLog(data, force = false, type = "info"){
       console.warn("[\x1b[33m!\x1b[0m] %s", data)
     }
     if(type === "err"){
-      console.error("[\x1b[31mx\x1b[0m] %s")
+      console.error("[\x1b[31mx\x1b[0m] %s", data)
     }
   }
 }
