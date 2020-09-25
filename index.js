@@ -159,21 +159,26 @@ watcher.on('change', (filepath) => {
               const info = serializer.deserialize(val)
               const method = targetService.actions[info.action]
               if(typeof method === "function"){
-                const actionPayload = method(info)
-                const result = {
-                  uuid: info.uuid,
-                  resolver: serviceName,
-                  action: info.action,
-                  time: Math.round((new Date()).getTime() / 1000).toString(),
-                  timeIssued: info.time,
-                  payload: actionPayload,
-                  ref: info.payload,
-                }
-                const resultSerialized = serializer.serialize(result)
-                if(logger.devMode){
-                  console.info(`[\x1b[35m+\x1b[0m] \x1b[4m%s\x1b[0m%s\x1b[40m\x1b[37m%s\x1b[0m%s\x1b[1m%s\x1b[0m%s%s`, serviceName, `: Detected a `, info.action, ` request from `, info.issuer, `: `, info.payload)
-                }
-                fs.writeFile(path.resolve(configPaths.serviceStore, `./${info.issuer}.rslt`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
+                method(info)
+                  .then(actionPayload => {
+                    const result = {
+                      uuid: info.uuid,
+                      resolver: serviceName,
+                      action: info.action,
+                      time: Math.round((new Date()).getTime() / 1000).toString(),
+                      timeIssued: info.time,
+                      payload: actionPayload,
+                      ref: info.payload,
+                    }
+                    const resultSerialized = serializer.serialize(result)
+                    if(logger.devMode){
+                      console.info(`[\x1b[35m+\x1b[0m] \x1b[4m%s\x1b[0m%s\x1b[40m\x1b[37m%s\x1b[0m%s\x1b[1m%s\x1b[0m%s%s`, serviceName, `: Detected a `, info.action, ` request from `, info.issuer, `: `, info.payload)
+                    }
+                    fs.writeFile(path.resolve(configPaths.serviceStore, `./${info.issuer}.rslt`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
+                  })
+                  .catch(err => {
+                    logger.err(`Action ${info.action} has reported an error: ${err}`, true)
+                  })
               }else{
                 logger.err(`Received action ${info.action} which should be handled by ${serviceName}, but it doesn't appear to have a proper function to handle it.`)
               }

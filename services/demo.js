@@ -1,10 +1,10 @@
 module.exports = {
   name: "redis",
   actions: {
-    query: (data) => {
+    query: async (data) => {
 
     },
-    play_with_me: (data) => {
+    play_with_me: async (data) => {
       console.log(data.payload)
       return "world.execute(me);"
     }
