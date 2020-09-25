@@ -68,7 +68,6 @@ if(module !== require.main){
         time: Math.round((new Date()).getTime() / 1000).toString(),
         payload: payload
       }
-      console.log(task.uuid)
       val["requestCounter"]++
       const resultSerialized = serializer.serialize(task)
       startWatching()
