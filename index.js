@@ -8,7 +8,9 @@ const logger = require('./utils/consoleLogger')
 const idGen = require('./utils/idGenerate')
 
 const version = require('./package.json').version
-const config = require('./config/config.json')
+const config = require('./config/general.json')
+const configDispatch = require('./config/dispatch.json')
+const { time } = require('console')
 
 const configPaths = {
   storePath: path.resolve(config.path, './scripts/plugins/store/'),
@@ -47,41 +49,102 @@ if(services.length > 0){
   logger.err(`No service found! Check services/README.txt`, true)
 }
 
+/* Run as a module */
 if(module !== require.main){
   const exported = {}
+  const dispatchResults = {}
+  let watcher = null
+  let waitingRequest = 0
   services.forEach(val => {
     exported[val.name] = val
+    const serviceName = val.name
+    delete val.name
     val["requestCounter"] = 0
-    val["dispatch"] = (targetService, targetAction, payload) => {
+    val["dispatch"] = async (identifier, targetService, targetAction, payload) => {
       const task = {
-        uuid: idGen.uuid(val.name, targetService, val["requestCounter"]),
-        issuer: val.name,
+        uuid: idGen.uuid(identifier+'+'+serviceName, targetService, val["requestCounter"]),
+        issuer: serviceName,
         action: targetAction,
         time: Math.round((new Date()).getTime() / 1000).toString(),
         payload: payload
       }
-      delete val.name
+      console.log(task.uuid)
       val["requestCounter"]++
-      const requestSerial = serializer.serialize(task)
-      return requestSerial // TODO
+      const resultSerialized = serializer.serialize(task)
+      fs.writeFile(path.resolve(configPaths.serviceStore, `./${targetService}.task`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
+      startWatching()
+      waitingRequest++
+      return new Promise((resolve, reject) => {
+        const detectionInterval = configDispatch.detectionInterval
+        const timeoutTime = configDispatch.timeOutTime
+        let timeUsed = 0
+        const detection = setInterval(() => {
+          if(typeof dispatchResults[task.uuid] !== "undefined"){
+            resolve(dispatchResults[task.uuid])
+            waitingRequest--
+            clearInterval(detection)
+            recycleWatcher()
+          }
+          timeUsed += detectionInterval
+          if(timeUsed > timeoutTime){
+            reject(`Timed out: ${task.uuid}`)
+            waitingRequest--
+            clearInterval(detection)
+            recycleWatcher()
+          }
+        }, detectionInterval)
+      })
     }
   })
+  function recycleWatcher(){
+    if(waitingRequest <= 0 && watcher !== null){
+      watcher.close()
+      watcher = null
+    }
+  }
+  function startWatching(){
+    if(waitingRequest <= 0){
+      watcher = chokidar.watch(configPaths.serviceStore)
+      watcher.on('change', (filepath) => {
+        const file = path.basename(filepath)
+        const serviceName = file.substring(0, file.length - 5)
+        const changeType = file.substring(file.length - 4, file.length)
+        const targetService = exported[serviceName]
+        if(changeType === "rslt"){
+          if(typeof targetService === 'object'){
+            fs.readFile(path.resolve(filepath), { encoding: 'utf8' }, (err, data) => {
+              if(!err && data !== ''){
+                fs.writeFileSync(filepath, '', { encoding: 'utf8'})
+                data.split('\n').forEach(val => {
+                  if(val !== ''){
+                    const info = serializer.deserialize(val)
+                    dispatchResults[info.uuid] = info
+                  }
+                })
+              }
+            })
+          }
+        }
+      })
+    }
+  }
   module.exports = exported
   return
 }
 
+/* Run as a server */
 console.info(`Everything is ready, listening at \x1b[4m${config.path}\x1b[0m`)
-
-chokidar.watch(configPaths.serviceStore).on('change', (filepath) => {
+const watcher = chokidar.watch(configPaths.serviceStore)
+watcher.on('change', (filepath) => {
   const file = path.basename(filepath)
   const serviceName = file.substring(0, file.length - 5)
   const changeType = file.substring(file.length - 4, file.length) // rslt or task
   const targetService = services.find(val => val.name === serviceName)
-  if(typeof targetService === 'object'){
-    fs.readFile(path.resolve(filepath), { encoding: 'utf8' }, (err, data) => {
-      if(!err && data !== ''){
-        fs.writeFileSync(filepath, '', { encoding: 'utf8'})
-        if(changeType === "task"){
+  if(changeType === "task"){
+    if(typeof targetService === 'object'){
+      fs.readFile(path.resolve(filepath), { encoding: 'utf8' }, (err, data) => {
+        if(!err && data !== ''){
+          fs.writeFileSync(filepath, '', { encoding: 'utf8'})
           data.split('\n').forEach(val => {
             if(val !== ''){
               const info = serializer.deserialize(val)
@@ -108,7 +171,7 @@ chokidar.watch(configPaths.serviceStore).on('change', (filepath) => {
             }
           })
         }
-      }
-    })
+      })
+    }
   }
 })
