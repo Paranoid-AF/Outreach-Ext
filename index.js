@@ -71,9 +71,9 @@ if(module !== require.main){
       console.log(task.uuid)
       val["requestCounter"]++
       const resultSerialized = serializer.serialize(task)
-      fs.writeFile(path.resolve(configPaths.serviceStore, `./${targetService}.task`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
       startWatching()
       waitingRequest++
+      fs.writeFile(path.resolve(configPaths.serviceStore, `./${targetService}.task`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
       return new Promise((resolve, reject) => {
         const detectionInterval = configDispatch.detectionInterval
         const timeoutTime = configDispatch.timeOutTime
