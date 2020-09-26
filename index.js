@@ -97,8 +97,8 @@ if(module !== require.main){
             recycleWatcher()
             const targetPath = path.resolve(configPaths.serviceStore, `./${serviceName}.rslt`)
             fs.readFile(targetPath, { encoding: 'utf8' }, (err, data) => {
+              fs.writeFileSync(targetPath, '', { encoding: 'utf8'})
               if(!err && data !== ''){
-                fs.writeFileSync(filepath, '', { encoding: 'utf8'})
                 transmitResult(data)
               }
             })
