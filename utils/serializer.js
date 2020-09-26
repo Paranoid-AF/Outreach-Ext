@@ -19,7 +19,13 @@ const replaceHex = new RegExp("[" + regexReplace + "]", 'g')
 function serialize(obj){
   let result = ""
   Object.keys(obj).forEach((val, index) => {
-    result += obj[val].replace(replaceHex, '') + hexMap[val]
+    let str = ""
+    if(typeof obj[val] === "string"){
+      str = obj[val]
+    }else{
+      str = obj[val].toString()
+    }
+    result += str.replace(replaceHex, '') + hexMap[val]
   })
   return result
 }
