@@ -22,6 +22,8 @@ function serialize(obj){
     let str = ""
     if(typeof obj[val] === "string"){
       str = obj[val]
+    }if(typeof obj[val] === "object"){
+      str = JSON.stringify(obj[val])
     }else{
       str = obj[val].toString()
     }
