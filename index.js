@@ -66,47 +66,52 @@ if(module !== require.main){
     delete val.name
     val["requestCounter"] = 0
     val["dispatch"] = async (identifier, targetService, targetAction, payload) => {
-      const task = {
-        uuid: idGen.uuid(identifier+'+'+serviceName, targetService, val["requestCounter"]),
-        issuer: serviceName,
-        action: targetAction,
-        time: Math.round((new Date()).getTime() / 1000).toString(),
-        payload: payload
-      }
-      val["requestCounter"]++
-      const resultSerialized = serializer.serialize(task)
-      startWatching()
-      waitingRequest++
-      fs.writeFile(path.resolve(configPaths.serviceStore, `./${targetService}.task`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
-      return new Promise((resolve, reject) => {
-        const detectionInterval = configDispatch.detectionInterval
-        const timeoutTime = configDispatch.timeOutTime
-        let timeUsed = 0
-        const detection = setInterval(() => {
-          if(typeof dispatchResults[task.uuid] !== "undefined"){
-            resolve(dispatchResults[task.uuid])
-            waitingRequest--
-            clearInterval(detection)
-            recycleWatcher()
-          }
-          timeUsed += detectionInterval
-          if(timeUsed > timeoutTime){
-            reject(`Timed out: ${task.uuid}`)
-            waitingRequest--
-            clearInterval(detection)
-            recycleWatcher()
-            const targetPath = path.resolve(configPaths.serviceStore, `./${serviceName}.rslt`)
-            fs.readFile(targetPath, { encoding: 'utf8' }, (err, data) => {
-              fs.writeFileSync(targetPath, '', { encoding: 'utf8'})
-              if(!err && data !== ''){
-                transmitResult(data)
-              }
-            })
-          }
-        }, detectionInterval)
-      })
+      return dispatchHandler(identifier, targetService, targetAction, payload, serviceName, val)
     }
   })
+
+  async function dispatchHandler(identifier, targetService, targetAction, payload, serviceName, val){
+    const task = {
+      uuid: idGen.uuid(identifier+'+'+serviceName, targetService, val["requestCounter"]),
+      issuer: serviceName,
+      action: targetAction,
+      time: Math.round((new Date()).getTime() / 1000).toString(),
+      payload: payload
+    }
+    val["requestCounter"]++
+    const resultSerialized = serializer.serialize(task)
+    startWatching()
+    waitingRequest++
+    fs.writeFile(path.resolve(configPaths.serviceStore, `./${targetService}.task`), resultSerialized + '\n', { encoding: 'utf8', flag: 'a'}, () => {})
+    return new Promise((resolve, reject) => {
+      const detectionInterval = configDispatch.detectionInterval
+      const timeoutTime = configDispatch.timeOutTime
+      let timeUsed = 0
+      const detection = setInterval(() => {
+        if(typeof dispatchResults[task.uuid] !== "undefined"){
+          resolve(dispatchResults[task.uuid])
+          waitingRequest--
+          clearInterval(detection)
+          recycleWatcher()
+        }
+        timeUsed += detectionInterval
+        if(timeUsed > timeoutTime){
+          reject(`Timed out: ${task.uuid}`)
+          waitingRequest--
+          clearInterval(detection)
+          recycleWatcher()
+          const targetPath = path.resolve(configPaths.serviceStore, `./${serviceName}.rslt`)
+          fs.readFile(targetPath, { encoding: 'utf8' }, (err, data) => {
+            fs.writeFileSync(targetPath, '', { encoding: 'utf8'})
+            if(!err && data !== ''){
+              transmitResult(data)
+            }
+          })
+        }
+      }, detectionInterval)
+    })
+  }
+
   function recycleWatcher(){
     if(waitingRequest <= 0 && watcher !== null){
       watcher.close()
