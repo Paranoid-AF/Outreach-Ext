@@ -1,3 +1,4 @@
+const process = require('process')
 const devMode = !!process.argv.find(val => (val === "--dev" || val === "-D"))
 function writeLog(data, force = false, type = "info"){
   if(force || devMode){

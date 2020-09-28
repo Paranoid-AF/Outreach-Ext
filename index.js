@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
 const chokidar = require('chokidar')
-const process = require('process')
 
 const serializer = require('./utils/serializer')
 const logger = require('./utils/consoleLogger')
@@ -10,7 +9,6 @@ const idGen = require('./utils/idGenerate')
 const version = require('./package.json').version
 const config = require('./config/general.json')
 const configDispatch = require('./config/dispatch.json')
-const { time } = require('console')
 
 const configPaths = {
   storePath: path.resolve(config.path, './scripts/plugins/store/'),
