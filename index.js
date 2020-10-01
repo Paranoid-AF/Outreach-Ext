@@ -86,8 +86,10 @@ if(module !== require.main){
       const timeoutTime = configDispatch.timeOutTime
       let timeUsed = 0
       const detection = setInterval(() => {
-        if(typeof dispatchResults[task.uuid] !== "undefined"){
-          resolve(dispatchResults[task.uuid])
+        if(task.uuid in dispatchResults){
+          const result = dispatchResults[task.uuid]
+          delete dispatchResults[task.uuid]
+          resolve(result)
           waitingRequest--
           clearInterval(detection)
           recycleWatcher()
@@ -96,15 +98,11 @@ if(module !== require.main){
         if(timeUsed > timeoutTime){
           reject(`Timed out: ${task.uuid}`)
           waitingRequest--
+          if(task.uuid in dispatchResults){
+            delete dispatchResults[task.uuid]
+          }
           clearInterval(detection)
           recycleWatcher()
-          const targetPath = path.resolve(configPaths.serviceStore, `./${serviceName}.rslt`)
-          fs.readFile(targetPath, { encoding: 'utf8' }, (err, data) => {
-            fs.writeFileSync(targetPath, '', { encoding: 'utf8'})
-            if(!err && data !== ''){
-              transmitResult(data)
-            }
-          })
         }
       }, detectionInterval)
     })
