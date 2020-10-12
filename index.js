@@ -165,7 +165,7 @@ watcher.on('change', (filepath) => {
               const info = serializer.deserialize(val)
               const method = targetService.actions[info.action]
               if(typeof method === "function"){
-                method(info)
+                Promise.resolve(method(info))
                   .then(actionPayload => {
                     const result = {
                       uuid: info.uuid,
