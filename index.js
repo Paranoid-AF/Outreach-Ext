@@ -49,7 +49,7 @@ if(services.length > 0){
     logger.info(`Loaded ${services.length} service(s).`, true)
   }
 }else{
-  logger.err(`No service found! Check services/README.txt`, true)
+  logger.err(`No service found! Check services/README.md`, true)
 }
 
 /* Run as a module */
