@@ -9,12 +9,18 @@ Clone this repository, and install its dependencies:
 ```shell
 npm install
 ```
+
+Edit **/config/general.json**, fill in your `svencoop` directory path.
+
+> If you're using Windows, please replace every backslash `\` with double backslash `\\` to avoid escaping.  
+For instance, `C:\SCDS\svencoop` should be written as `C:\\SCDS\\svencoop`
+
 After all of those, run:
 ```shell
 node .
 ```
 
-If you need verbose log messages (such as interception of dispatching), you may want to run
+If you need verbose log messages (such as interception of dispatching), you may want to run:
 ```shell
 node . -D
 # OR
@@ -35,7 +41,7 @@ Start another Node.js project, and install this module:
 ```
 npm install [Outreach-Ext's Directory]
 ```
-It's not recommended to use `yarn` here, as it would copy the whole Outreach-Ext directory to your project, instead of soft linking it - this is going to make updates and maintenance harder.
+It's not recommended to use `yarn` here, as it would copy the whole Outreach-Ext directory to your project, instead of soft linking it - this is going to make updates and maintenance harder. However, there's always [a solution to make yarn soft link it.](https://github.com/Paranoid-AF/Outreach-Ext#YARN-solution)
 
 ### Importing It
 When you need to call Outreach actions in your project, require this module with:
@@ -71,6 +77,20 @@ And... you could do whatever you want with it, just like what you would do in Ou
 ## Conclusion
 Yes, I know the code looks bad, as I was trying to figure out if my design was really going to work... and it works. Maybe some time I would take time rewriting it.
 
-This project also has a TypeScript declaration file, which should come in handy when you're going full ahead with TypeScript.
+Additionally, this project also has a TypeScript declaration file, which should come in handy when you're going full ahead with TypeScript.
 
 Still, everything is experimental. This could be unstable anyway.
+
+## YARN solution
+It's possible to use `yarn` to soft link a package instead of copying everything for installation.
+
+In `Outreach-Ext` directory, run:
+```shell
+yarn link
+```
+Now YARN would remember this link.
+
+And in your project directory, run:
+```shell
+yarn link "outreach"
+```
